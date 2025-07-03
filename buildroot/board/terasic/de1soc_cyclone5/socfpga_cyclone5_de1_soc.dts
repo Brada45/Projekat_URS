@@ -55,6 +55,14 @@
 		regulator-max-microvolt = <3300000>;
 	};
 
+	gpio_altr: gpio@ff200000 {
+		compatible = "altr,pio-1.0";
+		reg = <0xff200000 0x10>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		status = "okay";
+	};
+
 };
 
 &gmac1 {
@@ -89,8 +97,9 @@
 	clock-frequency = <100000>;
 
 	ir_thermo@5a {
-	        compatible = "melexis,mlx90614";
-	        reg = <0x5a>;
+		compatible = "melexis,mlx90614";
+		reg = <0x5a>;
+		wakeup-gpios = <&gpio_altr 1 0>;
 	};
 };
 
