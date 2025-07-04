@@ -1,4 +1,4 @@
-# Projekat: IRThermo Click 5V bezkontaktni senzor
+# Projekat: IRThermo Click 5V beskontaktni senzor
 
 Ovaj projekat prikazuje kako integrisati MLX90614 IR senzor za beskontaktno mjerenje temperature sa DE1-SoC pločom koristeći Buildroot za kreiranje Linux sistema i I2C interfejs za komunikaciju.
 
@@ -18,7 +18,7 @@ U ovom projektu koristi se sledeći hardver:
   
   ![ploca](https://github.com/user-attachments/assets/98e4b47e-fd19-4f40-b9b6-258c79075c75)
   <p>Izgled ploce</p>
-- **MLX90614** bezkontaktni IR temperaturni senzor
+- **MLX90614** beskontaktni IR temperaturni senzor
 ![irthermo-5v-click-thickbox_default-12x](https://github.com/user-attachments/assets/86854a0c-fe79-47e7-937a-7e47b9df6a92)
   <p align=center>Izgled senzora</p>
 - **I2C** magistrala za komunikaciju između senzora i HPS-a
