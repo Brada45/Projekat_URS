@@ -113,8 +113,6 @@ Dati folder ima ovakvu strukturu
 │   │           ├── socfpga_cyclone5_de1_soc.dts  
 │   │           └── socfpga.rbf  
 │   ├── output
-│   │   ├── images
-│   │   │   └── sdcard.img
 │   │   └── linux-socfpga-6.1.38-lts
 │   │        └── .config  
 │   └── package  
@@ -131,7 +129,6 @@ Sada ćemo preći bitne fajlove/foldere u ovom direktorijumu:
   ● socfpga_cyclone5_de1_soc.dts - *device tree* fajl koji se koristi za opis hardverske konfiguracije sistema (kojim perifernim uređajima npr. I2C senzori, UART, GPIO, SPI, itd. operativni sistem (kernel) ima pristup i kako su oni povezani)  
   ● socfpga.rbf - fajl koji omogućava komunikaciju između fpga i hps dijela de1-soc ploče  
   ● genimage.cfg je fajl kojim opisujemo strukturu naše *SD* kartice i šta će se sve nalaziti na njoj  
-  ● sdcard.img - kompletan sistem *deploy-an* na ovaj fajl i njega je neophodno samo prebaciti na karticu na neki način, nakon čega je moguć *plug-and-play* na ploči
 U *output/linux-socfpga-6.1.38-lts* nalazi se fajl .config u kojem se čuvaju specifičnosti vezane za kernel (koji drajveri su uključeni i slično, u konkretnom slučaju se između ostalog nalazi se drajver i za naš senzor)  
 
 > [!NOTE]
