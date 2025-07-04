@@ -17,7 +17,7 @@ U ovom projektu koristi se sledeći hardver:
 - **DE1-SoC** razvojna ploča (Cyclone V SoC)
   
   ![ploca](https://github.com/user-attachments/assets/98e4b47e-fd19-4f40-b9b6-258c79075c75)
-  <p align=center>Izgled ploce</p>
+  <p>Izgled ploce</p>
 - **MLX90614** bezkontaktni IR temperaturni senzor
 ![irthermo-5v-click-thickbox_default-12x](https://github.com/user-attachments/assets/86854a0c-fe79-47e7-937a-7e47b9df6a92)
   <p align=center>Izgled senzora</p>
@@ -25,7 +25,7 @@ U ovom projektu koristi se sledeći hardver:
 - **Level shifter** za usklađivanje naponskih nivoa (3.3V ↔ 5V)
   ![s-l1200](https://github.com/user-attachments/assets/52e4a987-4d03-4e4b-8047-70fda9df716a)
   <p align=center>Izgled level shifter-a</p>
--Protobord (breadboard) kao i odgovarajući broj kablića (vezica) za povezivanje
+- Protobord (breadboard) kao i odgovarajući broj kablića (vezica) za povezivanje
 - Potrebna je fizička povezanost između FPGA i HPS strane putem odgovarajućeg `.rbf` fajla - nalazi se u ovom repozitorijumu
 
 ### 1.1 DE1SOC pinovi
@@ -37,7 +37,7 @@ U ovom projektu koristi se sledeći hardver:
 odozgo prema dolje se koristi za *SCL* signal. Odmah do njega nalazi se pin za *SDA* signal. Na šestom pinu se nalazi
 napon od 5V koji ćemo koristiti na level shifter-u da bi dobili odgovarajuće signale na senzoru. Odozdo
 šesti lijevi pin je naponski pin koji daje 3.3V i takođe se koristi kod level shifter-a. Odmah do njega nalazi se 
-pin koji predstavlja uzemljenje. Na desnoj strani koristi se samo jedan pin i to je sedmi desni odozgo prema dolje i služi za wakeup.
+pin koji predstavlja uzemljenje. Na desnoj strani koristi se samo jedan pin i to je sedmi desni odozgo prema dolje i služi za wakeup (označeni brojem 1 u žutom pravouganiku).
 
 ### 1.2 Level shifter pinovi
 
@@ -45,14 +45,60 @@ pin koji predstavlja uzemljenje. Na desnoj strani koristi se samo jedan pin i to
 kao i oba unutrašnja para. Vanjski parovi sluze za povezivanje *SCL* i *SDA* dok unutrušnji za 3.3V i 5V. Takođe imamo
 i dva pina uzemljenja koji su u međusobnom kratkom spoju pa možemo posmatrati kao da su jedan.
 
+![10633d1236880a914ca4b02179b64b1d13e8597b](https://github.com/user-attachments/assets/025c68db-f07a-40b9-87d6-054d5561be5e)
+<p align=center>Šema rada level shifter-a</p>
+
+Ovaj sklop se koristi za dvosmjerno prevođenje signala između dva različita logička napona, npr. sa **3.3V** na **5V** i obrnuto. Sastoji se od jednog **N-kanalnog MOSFET-a (BSS138)** i dva **pull-up otpornika od 10kΩ**.
+
+#### Konekcije:
+- **Source** → TX_LV (niskonaponska strana)
+- **Gate** → direktno na 3.3V (LV)
+- **Drain** → TX_HV (visokonaponska strana)
+- **R3 (10kΩ)** između TX_LV i 3.3V
+- **R4 (10kΩ)** između TX_HV i 5V
+
+---
+
+#### Kako funkcioniše:
+
+##### Kada uređaj sa 3.3V šalje logičku “1”:
+- TX_LV = 3.3V
+- Gate = 3.3V → Vgs = 0V → MOSFET isključen
+- TX_HV se povlači na 5V preko R4 → logička “1” vidljiva na 5V strani
+
+##### Kada uređaj sa 3.3V šalje logičku “0”:
+- TX_LV = 0V
+- Gate = 3.3V → Vgs = 3.3V → MOSFET uključen
+- TX_HV se povlači na 0V preko MOSFET-a → logička “0” na 5V strani
+
+---
+
+##### Kada uređaj sa 5V šalje logičku “1”:
+- TX_HV = 5V
+- Drain = 5V, Source ≈ 3.3V → Vgs ≈ -1.7V → MOSFET isključen
+- TX_LV se povlači na 3.3V preko R3 → logička “1” vidljiva na 3.3V strani
+
+##### Kada uređaj sa 5V šalje logičku “0”:
+- TX_HV = 0V
+- Drain = 0V → Vgs = 3.3V → MOSFET uključen
+- TX_LV se povlači na 0V preko MOSFET-a → logička “0” na 3.3V strani
+
+
+
+
 ### 1.3 IRTHERMO CLICK 5V
 
   Konkretan senzor se sastoji od 16 pinova od kojih većina nije ni konfigurisana (NC). Nama su potrebna
 donja 4 desne strane  (GND, 5V, SDA, SCL). 
 
+![image](https://github.com/user-attachments/assets/804bf137-f96c-410f-84a0-cc928c5cd964)
+
+<p align=center>Šema senzora</p>
+
+
 ### 1.4 Povezivanje
 
-  Prvi korak prilikom fizičkog povezivanja je da na zeljeno mjesto na protoboard-u "ubodemo" shifter i senzor.
+  Prvi korak prilikom fizičkog povezivanja je da na željeno mjesto na protoboard-u "ubodemo" shifter i senzor.
   Sljedeći korak je povezivanje ploče i shiftera tako da kreiramo sljedeće parove veza:
 
 ● *SCL* pin sa ploče vezujemo na jedan vanjski pin *LV* strane (oznaka *TXI*)  
@@ -71,8 +117,9 @@ Ovime smo povezali našu ploču i shifter. Sljedeći korak je da vežemo naš sh
 
 Ovime smo obezbijedili fizičko vezivanje između senzora, shiftera i ploče.  
 
+![Schema](https://github.com/user-attachments/assets/e52df8d2-9e8f-4a77-b9b5-fddfa4a1fb54)
 
-![Sema](https://github.com/user-attachments/assets/a1d60779-15c6-483f-adb4-0fb9c71062e1)
+
 <p align=center>Grafički prikaz povezivanja</p>
   
         
@@ -124,7 +171,7 @@ Dati folder ima ovakvu strukturu
 Sada ćemo preći bitne fajlove/foldere u ovom direktorijumu:  
   ● boot.cmd, boot-env.txt, boot.scr - fajlovi koji služe za definisanje načina boot-ovanja sistema  
   ● de1_soc_defconfig - txt fajl koji prikazuje sve uključene opcije u sistemu  
-  ● de1-soc-handoff.patch - *zakrpa* koja služi za konfiguraciju *SPL* i *U-Boot*
+  ● de1-soc-handoff.patch - *zakrpa* koja služi za konfiguraciju *SPL* i *U-Boot*  
   ● rootfs-overlay - koristi se za kreiranje stalnih osobina sistema (u konkretnom slučaju koristi se da se podesi *ip* adresa mrežnog interfejsa i da se *prebaci* javni kljuc koji omogućava ssh komunikaciju)  
   ● socfpga_cyclone5_de1_soc.dts - *device tree* fajl koji se koristi za opis hardverske konfiguracije sistema (kojim perifernim uređajima npr. I2C senzori, UART, GPIO, SPI, itd. operativni sistem (kernel) ima pristup i kako su oni povezani)  
   ● socfpga.rbf - fajl koji omogućava komunikaciju između fpga i hps dijela de1-soc ploče  
@@ -136,7 +183,7 @@ U *output/linux-socfpga-6.1.38-lts* nalazi se fajl .config u kojem se čuvaju sp
 
 ## 3. Soruce
 
-*UNIX* filozofija je *Sve je fajl* zbog toga se u datom *source* kodu otvara fajl na određenom magistrali. Taj fajl se dobija adekvatnim *vezivanjem drajvera* i odgovara senzora. U konkretnom slučaju 
+*UNIX* filozofija je *Sve je fajl* zbog toga se u datom *source* kodu otvara fajl na određenoj magistrali. Taj fajl se dobija adekvatnim *vezivanjem drajvera* i odgovara senzora. U konkretnom slučaju 
 nalazi se na putanji */sys/bus/iio/devices/iio:device0/in_temp_object_raw*. Kada pročitamo ovaj fajl dobićemo neku vrijednost (u za sobnu temperaturu oko 15000). Adekvatnim konvertovanjem (množenjem sa 0.02, a potom oduzimanjem sa
 273.15) dobijamo vrijednost u stepenima Celzijusa. Čitanje temperature se izvršava periodično svake sekunde.  
   
@@ -163,7 +210,7 @@ U našem dts je neophodno da se nalazi sljedeći čvor
 };
 ```
 čime postižemo sljedeće. Pali se i2c2 magistrala preko koje senzor komunicira sa pločom, potom se podešava frekfencija kojom se komunicira. Podčvor predstavlja konkretan drajver koji služi za *rad* sa senzorom gdje imamo dvije 
-bitne opcije compatible (parametar po kojem se pronalazi drajver), red je adresa na kojoj senzor odgovara i na kojoj će se *vezati* drajver. Treća opcija je proizvoljna i nije heophodna za ispravan rad senzora i predstavlja informaciju
+bitne opcije compatible (parametar po kojem se pronalazi drajver), reg je adresa na kojoj senzor odgovara i na kojoj će se *vezati* drajver. Treća opcija je proizvoljna i nije heophodna za ispravan rad senzora i predstavlja informaciju
 o tome da li je definisan i ako jeste gdje, *wakeup gpio* pin.
 
 ## 4.2 Linux kernel
@@ -178,20 +225,20 @@ Device Drivers --->
         -> Temperature sensors --->
             <*> Melexis MLX90614 contactless infrared thermometer
 ```
-nakog čega je potrebno ponovo *mejkovati* kernel i sam linux.
+nakog čega je potrebno ponovo *mejkovati* kernel i sam linux. Ovo se može uraditi i ručnim kopiranjem *.config* fajla iz *linux-socfpga-6.1.38-lts* foldera ili samo dijela vezanog za senzor.
 
 ## 4.3 Prebacivanje izvršnog fajla na ploču
 U ovom teksu smo spominjali da postoji mnogo načina prebacivanja fajlova između razvojnog i ciljnog uređaja. U ovu svrhu koristimo gore spomenuti rootfs-overlay. Fajl *70-static.network* čuva podatke o ip adresi mrežnog
 interfejsa ploče, dok authorized_keys predstavlja javni ključ koji je neophodan za sigurnu komunikaciju. U konkretnom slučaju je postavljeno da je ip adresa ploče *192.168.23.100* i pokrećemo komandu:
 ```
-scp -O -i [putanja do privatnog ključa] read_temp root@192.168.23.100:/home
+scp -O -i [putanja/do/privatnog/ključa] read_temp root@192.168.23.100:/home
 ```
 Neophodno je spomenuti da se nalazimo u folderu *source*. Ovom komandom smo prebaci naš izvršni fajl u home folder naše ciljne platforme.  
 Preostaje nam samo još da se prebacimo u taj folder i pokrenemo našu aplikaciju za mjerenje temperature.
 
 ## 5. Rad sa pločom
 
-Nakon paljenja ploče i adekvatnog povezivanja (npr serijski port sa sljedećim podacima Serial line: COM*, speed: 115200) vidjećemo da se sistem *boot-ovao* i dobićemo poruku
+Nakon paljenja ploče i adekvatnog povezivanja (npr serijski port sa sljedećim podacima Serial line: COMX, speed: 115200) vidjećemo da se sistem *boot-ovao* i dobićemo poruku
 ```
 DE1-SoC on ETFBL
 etfbl login:
