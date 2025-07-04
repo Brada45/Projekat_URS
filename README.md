@@ -1,5 +1,15 @@
 # Projekat: IRThermo Click 5V bezkontaktni senzor
 
+Ovaj projekat prikazuje kako integrisati MLX90614 IR senzor za beskontaktno mjerenje temperature sa DE1-SoC pločom koristeći Buildroot za kreiranje Linux sistema i I2C interfejs za komunikaciju.
+
+## Preduslovi
+
+- Linux sistem (za Buildroot i kompajliranje)
+- `arm-linux-gcc` cross-compiler
+- USB-UART konekcija ili mrežna konekcija sa DE1-SoC
+- SD kartica (za boot)
+- SSH podešen (javnim/privatnim ključem)
+
 ## 1. Hardware
 
 U ovom projektu koristi se sledeći hardver:
@@ -59,8 +69,11 @@ Ovime smo povezali našu ploču i shifter. Sljedeći korak je da vežemo naš sh
 ● *GND* pin dovodimo na *GND* pin senzora  
 ● *TXO* pin koji predstavlja parnjaka *SDA* pinu dovodimo na *SDA* pin senzora  
 
-Ovime smo obezbijedili fizičko vezivanje između senzora, shiftera i ploče.
+Ovime smo obezbijedili fizičko vezivanje između senzora, shiftera i ploče.  
 
+
+![Sema](https://github.com/user-attachments/assets/a1d60779-15c6-483f-adb4-0fb9c71062e1)
+<p align=center>Grafički prikaz povezivanja</p>
   
         
 
@@ -99,7 +112,9 @@ Dati folder ima ovakvu strukturu
 │   │           │           └── authorized_keys  
 │   │           ├── socfpga_cyclone5_de1_soc.dts  
 │   │           └── socfpga.rbf  
-│   ├── output  
+│   ├── output
+│   │   ├── images
+│   │   │   └── sdcard.img
 │   │   └── linux-socfpga-6.1.38-lts
 │   │        └── .config  
 │   └── package  
@@ -116,6 +131,7 @@ Sada ćemo preći bitne fajlove/foldere u ovom direktorijumu:
   ● socfpga_cyclone5_de1_soc.dts - *device tree* fajl koji se koristi za opis hardverske konfiguracije sistema (kojim perifernim uređajima npr. I2C senzori, UART, GPIO, SPI, itd. operativni sistem (kernel) ima pristup i kako su oni povezani)  
   ● socfpga.rbf - fajl koji omogućava komunikaciju između fpga i hps dijela de1-soc ploče  
   ● genimage.cfg je fajl kojim opisujemo strukturu naše *SD* kartice i šta će se sve nalaziti na njoj  
+  ● sdcard.img - kompletan sistem *deploy-an* na ovaj fajl i njega je neophodno samo prebaciti na karticu na neki način, nakon čega je moguć *plug-and-play* na ploči
 U *output/linux-socfpga-6.1.38-lts* nalazi se fajl .config u kojem se čuvaju specifičnosti vezane za kernel (koji drajveri su uključeni i slično, u konkretnom slučaju se između ostalog nalazi se drajver i za naš senzor)  
 
 > [!NOTE]
@@ -176,4 +192,30 @@ scp -O -i [putanja do privatnog ključa] read_temp root@192.168.23.100:/home
 Neophodno je spomenuti da se nalazimo u folderu *source*. Ovom komandom smo prebaci naš izvršni fajl u home folder naše ciljne platforme.  
 Preostaje nam samo još da se prebacimo u taj folder i pokrenemo našu aplikaciju za mjerenje temperature.
 
+## 5. Rad sa pločom
+
+Nakon paljenja ploče i adekvatnog povezivanja (npr serijski port sa sljedećim podacima Serial line: COM*, speed: 115200) vidjećemo da se sistem *boot-ovao* i dobićemo poruku
+```
+DE1-SoC on ETFBL
+etfbl login:
+```
+ovdje je neophodno da unesemo *root* osim ako taj podatak nismo mijenjali. Nakon unosa uspjesno smo se ulogovali na sistem i imamo punu kontrolu nad njim. Pod pretpostavkom da smo prebacili naš kod za mjerenje temperature na ploču možemo izvršiti sljedeće komande i pokrenuti naš program.
+```
+cd ../home
+./read_temp
+```
+
+Sada kad smo pokrenuli program, ako smo sve uradili kako treba, trebali bi dobijati ovakav ispis:
+```
+Temperatura: 26.37 °C
+Temperatura: 26.41 °C
+Temperatura: 26.43 °C
+```
+
+## 6. Kako sistem radi
+
+- Buildroot generiše prilagođeni Linux image koji uključuje drajver za MLX90614 senzor.
+- DTS fajl opisuje fizičko povezivanje senzora na I2C2 magistralu.
+- Nakon boota, kernel automatski učita drajver i izloži senzor kao fajl u `/sys` sistemu.
+- Korisnička aplikacija `read_temp` čita vrijednosti iz fajl sistema i konvertuje ih u stepeni Celzijusa.
 
